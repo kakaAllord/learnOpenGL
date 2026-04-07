@@ -128,10 +128,18 @@ int main() {
     glLinkProgram(ShaderProgram);
     glValidateProgram(ShaderProgram);
 
+    // now we want to draw a square, let us draw two triangles positioned together.
     float positions[] = {
+        // First triangle
         -0.5f, -0.5f, 0.0f,
-         0.5f,  -0.5f, 0.0f,
-         0.0f,  0.5f, 0.0f
+         0.5f, -0.5f, 0.0f,
+         0.5f,  0.5f, 0.0f,
+
+        // Second triangle
+         0.5f,  0.5f, 0.0f,
+         -0.5f, 0.5f, 0.0f,
+        -0.5f, -0.5f, 0.0f,
+
     };
 
     /*
@@ -146,7 +154,7 @@ int main() {
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, 3 * 3 * sizeof(float), positions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 6 * 3 * sizeof(float), positions, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -164,7 +172,7 @@ int main() {
         glUseProgram(ShaderProgram);
         glBindVertexArray(VAO);
 
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         glfwPollEvents();
         glfwSwapBuffers(window);
