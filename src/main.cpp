@@ -2,6 +2,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "Core.h"
+
 
 //---------- Function Declarations -----------//
 void processInput(GLFWwindow*);
@@ -63,90 +65,21 @@ int main() {
     //      will only see that portion of the window we actually created.
     glViewport(0, 0, 800, 600);
 
-
-    //A shader is just a program that runs in the GPU
-
-    /*
-     *The Vertex shader is responsible with handling the position of vertices.
-     */
-    const char* VertexShadersource =
-        "#version 330 core\n"
-        "\n"
-        "in vec3 aPos;\n"
-        "void main()\n"
-        "{\n"
-        "gl_Position = vec4(aPos, 1.0f);"
-        "}\n";
-
-    /*
-     *The Fragment Shader is responsible with handing the color stuff
-     */
-    const char* FragmentShaderSource =
-        "#version 330 core\n"
-        "\n"
-        "out vec4 color;\n"
-        "void main()\n"
-        "{\n"
-        "color = vec4(1.0f, 0.0f, 0.0f, 1.0f);"
-        "}\n";
-
-    // Compile the shader so we can link it and create a Shader Program later
-    unsigned int VertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(VertexShader, 1, &VertexShadersource, nullptr);
-    glCompileShader(VertexShader);
-
-    // Checking for compile status
-    int vertex_compiled;
-    glGetShaderiv(VertexShader, GL_COMPILE_STATUS, &vertex_compiled);
-
-    // Printing error in case of one in the shader
-    if (!vertex_compiled) {
-        char message[1024];
-        glGetShaderInfoLog(VertexShader, 1024, nullptr, message);
-        std::cerr << "Faile to compile Vertex Shader: " << message << std::endl;
-    }
-
-    // Compiling the FragmentShader
-    unsigned int FragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(FragmentShader, 1, &FragmentShaderSource, nullptr);
-    glCompileShader(FragmentShader);
-
-    //Fragment Shader Error Handling
-    int fragment_compiled;
-    glGetShaderiv(FragmentShader, GL_COMPILE_STATUS, &fragment_compiled);
-    if (!fragment_compiled) {
-        char message[1024];
-        glGetShaderInfoLog(FragmentShader, 1024, nullptr, message);
-        std::cerr << "Failed to compile Fragment Shader : " << message << std::endl;
-    }
-
-    // He we create a program then link the shaders/
-    unsigned int ShaderProgram = glCreateProgram();
-    glAttachShader(ShaderProgram, VertexShader);
-    glAttachShader(ShaderProgram, FragmentShader);
-
-    glLinkProgram(ShaderProgram);
-    glValidateProgram(ShaderProgram);
+    Shader shader("res/shaders/basic.shader");
 
     // now we want to draw a square, let us draw two triangles positioned together.
     float positions[] = {
-        // First triangle
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.5f,  0.5f, 0.0f,
-
-        // Second triangle
-         0.5f,  0.5f, 0.0f,
-         -0.5f, 0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
-
+        -0.5f, -0.5f, 0.0f, // bottom left
+         0.5f, -0.5f, 0.0f, // bottom right
+         0.5f,  0.5f, 0.0f, // top right
+         -0.5f, 0.5f, 0.0f, // top left
     };
 
-    /*
-     *The Vertex Array Object handles the Array Attributes of the
-     *current bound VBO
-     *
-     */
+    unsigned int indices[] = {
+        0, 1, 2, //-> Bottom left, bottom right, Top right
+        2, 3, 0 // -> Top right, top left, bottom left
+    };
+
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -163,16 +96,21 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    unsigned int EBO;
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
         glClearColor(0.2f, 0.3f, 0.3f, 0.1f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // We then bind our shaderProgram and the Vertex Array before drawing our triangles
-        glUseProgram(ShaderProgram);
+        shader.Bind();
         glBindVertexArray(VAO);
 
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
         glfwPollEvents();
         glfwSwapBuffers(window);
