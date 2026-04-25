@@ -1,16 +1,16 @@
 #shader vertex
 #version 330 core
 layout (location=0) in vec3 aPosition;
-layout (location=1) in vec3 aColor;
-layout (location=2) in vec2 aTextCoordinate;
+layout (location=1) in vec2 aTextCoordinate;
 
 out vec3 outColor;
 out vec2 outTextureCoordinates;
 
+uniform mat4 transform;
+
 void main()
 {
-gl_Position = vec4(aPosition, 1.0f);
-outColor = aColor;
+gl_Position = transform * vec4(aPosition, 1.0f);
 outTextureCoordinates = aTextCoordinate;
 };
 

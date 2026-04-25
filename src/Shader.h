@@ -3,6 +3,10 @@
 #include <fstream>
 #include <unordered_map>
 
+#include <glm/gtc/matrix_transform.hpp>
+
+
+
 struct ShaderSource {
     std::string VertexShaderSource;
     std::string FragmentShaderSource;
@@ -22,6 +26,7 @@ public:
     void setUniform4f(const char* name, float v1, float v2, float v3, float v4);
     void setUniform1i(const char* name, int v1);
 
+    void setMat4fv(const char* name, const float* matrix_pointer);
 private:
     unsigned int GetUniformLocation(const std::string& name);
     ShaderSource ParseShader(const std::string& path);

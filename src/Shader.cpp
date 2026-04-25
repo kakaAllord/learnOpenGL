@@ -36,6 +36,11 @@ void Shader::setUniform1i(const char* name, int v1)
     glUniform1i(GetUniformLocation(name), v1);
 }
 
+void Shader::setMat4fv(const char* name, const float* matrix_pointer){
+    glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, matrix_pointer);
+}
+
+
 unsigned int Shader::GetUniformLocation(const std::string& name) {
     unsigned int UniformLocation;
     if (m_UniformLocationCache.contains(name)) {
