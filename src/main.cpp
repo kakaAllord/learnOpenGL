@@ -3,7 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #include "Core.h"
-
+#include "stb_image.hpp"
 
 //---------- Function Declarations -----------//
 void processInput(GLFWwindow*);
@@ -17,11 +17,6 @@ int main() {
         return -1;
     }
 
-    /*
-     *We are now enabling the core profile, meaning that we have to specify our
-     *own shaders and Vertex Array Object
-     *
-     */
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -30,8 +25,6 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-
-    // We need a window we can render unto, so yeah create a window.
     GLFWwindow* window = glfwCreateWindow(800, 600, "My App", nullptr, nullptr
         );
     if (window == nullptr) {
@@ -40,66 +33,118 @@ int main() {
     }
 
     glfwMakeContextCurrent(window);
-
-    /*
-     * Register a call back that will get called when the window resize event happens
-     *
-     * Callbacks is just like leaving your phone number at a busy restaurant, and
-     * then they will call you when there is free tables, instead of you keeping
-     * an eye after every five minutes.
-     *
-     * The phone Number --> A certain predefined interface they can reach you through.
-     *
-     * A callback is predefined, so you have to take in the same parameters as it,
-     * then do your code inside it.
-     */
     glfwSetFramebufferSizeCallback(window, frameBufferSizeCallback);
 
-    // This initializes Glad so we can call any OpenGL function now
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-
-    // This specifies the size of the rendering window, if we pass other coordinates OPENGL
-    //      will only see that portion of the window we actually created.
     glViewport(0, 0, 800, 600);
 
-    Shader shader("res/shaders/basic.shader");
+    Shader shader("../res/shaders/basic.shader");
 
-    // now we want to draw a square, let us draw two triangles positioned together.
     float positions[] = {
-        -0.5f, -0.5f, 0.0f, // bottom left
-         0.5f, -0.5f, 0.0f, // bottom right
-         0.5f,  0.5f, 0.0f, // top right
-         -0.5f, 0.5f, 0.0f, // top left
+        // positions            // Colors           //texture coordinates
+        -0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,   0.0f, 0.0f,      // bottom left
+         0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 0.0f,   1.0f, 0.0f,      // bottom right
+         0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,   1.0f, 1.0f,      // top right
+        -0.5f,  0.5f, 0.0f,     1.0f, 1.0f, 1.0f,   0.0f, 1.0f       // top left
     };
 
     unsigned int indices[] = {
-        0, 1, 2, //-> Bottom left, bottom right, Top right
-        2, 3, 0 // -> Top right, top left, bottom left
+        0, 1, 2,
+        2, 3, 0
     };
 
+
+    // VertexArrayObject
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
+    // VertexBufferObject
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, 6 * 3 * sizeof(float), positions, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
 
+    // VertexAttributeArrays
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    //ElementBufferObject
     unsigned int EBO;
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+
+    // Texture 1
+    unsigned int texture1;
+    glGenTextures(1, &texture1);
+
+    // Put texture in slot 0 then bind it to that state.
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+ 
+    //loading the texture
+    int width, height, nChannels;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* data = stbi_load("../res/textures/container.jpg", &width, &height, &nChannels, 0);
+
+    if (data!=nullptr)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    } 
+    else
+    {
+        std::cout << "Failed to load the texture." << std::endl;
+    }
+
+    stbi_image_free(data);
+
+    // Texture 2
+    unsigned int texture2;
+    glGenTextures(1, &texture2);
+    glBindTexture(GL_TEXTURE_2D, texture2);
+
+    // Put texture in slot 1 then bind it to that state.
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture2);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    data = stbi_load("../res/textures/awesomeface.png", &width, &height, &nChannels, 0);
+    if (data!=nullptr)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    } 
+    else
+    {
+        std::cout << "Failed to load the image." << std::endl;
+    }
+    stbi_image_free(data);
+
+    shader.Bind();
+    shader.setUniform1i("texture1", 0);
+    shader.setUniform1i("texture2", 1);
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
@@ -107,6 +152,10 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         shader.Bind();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2);
         glBindVertexArray(VAO);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -121,15 +170,12 @@ int main() {
     glfwTerminate();
 }
 
-// Listens for input events
 void processInput(GLFWwindow* window_) {
     if (glfwGetKey(window_, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window_, GL_TRUE);
     }
 }
 
-//The call back that gets called when a window(frame buffer) gets resized,
-// so as to set a new viewPort.
 void frameBufferSizeCallback(GLFWwindow* window_, int width_, int height_) {
     glViewport(0, 0, width_, height_);
     std::cout << "WIDTH [" << width_ << "]  HEIGHT [" << height_ << "]\n";

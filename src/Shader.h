@@ -19,7 +19,8 @@ public:
     void Bind() const;
     static void UnBind();
 
-    void setUniform4f(std::string &name, float v1, float v2, float v3, float v4);
+    void setUniform4f(const char* name, float v1, float v2, float v3, float v4);
+    void setUniform1i(const char* name, int v1);
 
 private:
     unsigned int GetUniformLocation(const std::string& name);

@@ -8,6 +8,7 @@ find_package(glfw3 REQUIRED)
 
 include_directories(
 		src/Vendor/glad/include
+		src/Vendor/stb_image/include
 )
 
 
@@ -16,8 +17,7 @@ add_executable(
 		src/main.cpp
 		src/Vendor/glad/src/glad.c
 		src/Shader.cpp
-		src/Shader.h
-		src/Core.h
+		src/Vendor/stb_image/src/stb_image.cpp
 )
 
 target_link_libraries(

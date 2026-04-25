@@ -27,8 +27,13 @@ void Shader::UnBind() {
     glUseProgram(0);
 }
 
-void Shader::setUniform4f(std::string& name, float v1, float v2, float v3, float v4) {
+void Shader::setUniform4f(const char* name, float v1, float v2, float v3, float v4) {
     glUniform4f(GetUniformLocation(name), v1, v2, v3, v4);
+}
+
+void Shader::setUniform1i(const char* name, int v1)
+{
+    glUniform1i(GetUniformLocation(name), v1);
 }
 
 unsigned int Shader::GetUniformLocation(const std::string& name) {
