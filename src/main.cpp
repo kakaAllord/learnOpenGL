@@ -216,7 +216,7 @@ int main() {
         
         
         shader.Bind();
-        projection = glm::perspective(glm::radians(45.0f), (float)(WINDOW_WIDTH/WINDOW_HEIGHT), 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians(45.0f), (float)(WINDOW_WIDTH/WINDOW_HEIGHT), 0.01f, 100.0f);
 
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         for (int i = 0; i < 10; i++ )
@@ -246,10 +246,10 @@ void processInput(GLFWwindow* window_) {
     }
 
     if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS) {
-        cameraPos += cameraSpeed * cameraFront; 
+        cameraPos -= cameraSpeed * cameraFront; 
     }
     if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) {
-        cameraPos -= cameraSpeed * cameraFront; 
+        cameraPos += cameraSpeed * cameraFront; 
     }
     if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS) {
         cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp)); 
