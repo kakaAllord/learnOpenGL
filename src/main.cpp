@@ -183,7 +183,7 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);
     glm::mat4 view, model,projection, transform;
-    view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+    // view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
     
     glm::vec3 cubePositions[] = {
         glm::vec3( 0.0f, 0.0f, 0.0f),
@@ -208,6 +208,11 @@ int main() {
         
         shader.Bind();
         projection = glm::perspective(glm::radians(45.0f), (float)(WINDOW_WIDTH/WINDOW_HEIGHT), 0.1f, 100.0f);
+
+        float radius = 15.0f;
+        float camX = sin(glfwGetTime()) * radius;
+        float camZ = cos(glfwGetTime()) * radius;
+        view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         for (int i = 0; i < 10; i++ )
         {
             model = glm::translate(glm::mat4(1.0f), cubePositions[i]);
