@@ -16,6 +16,11 @@ void frameBufferSizeCallback(GLFWwindow*, int, int);
 int WINDOW_WIDTH = 800;
 int WINDOW_HEIGHT = 600;
 
+float deltaTime, lastFrame, currentFrame;
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
 int main() {
 
     glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
@@ -199,6 +204,10 @@ int main() {
     };
     
     while (!glfwWindowShouldClose(window)) {
+        currentFrame = glfwGetTime();
+        deltaTime = lastFrame - currentFrame;
+        lastFrame = currentFrame;
+
         processInput(window);
         glClearColor(0.2f, 0.3f, 0.3f, 0.1f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -209,10 +218,7 @@ int main() {
         shader.Bind();
         projection = glm::perspective(glm::radians(45.0f), (float)(WINDOW_WIDTH/WINDOW_HEIGHT), 0.1f, 100.0f);
 
-        float radius = 15.0f;
-        float camX = sin(glfwGetTime()) * radius;
-        float camZ = cos(glfwGetTime()) * radius;
-        view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         for (int i = 0; i < 10; i++ )
         {
             model = glm::translate(glm::mat4(1.0f), cubePositions[i]);
@@ -231,10 +237,27 @@ int main() {
     glfwTerminate();
 }
 
+
 void processInput(GLFWwindow* window_) {
+
+    float cameraSpeed = 2.5f * deltaTime;
     if (glfwGetKey(window_, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window_, GL_TRUE);
     }
+
+    if (glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS) {
+        cameraPos += cameraSpeed * cameraFront; 
+    }
+    if (glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS) {
+        cameraPos -= cameraSpeed * cameraFront; 
+    }
+    if (glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS) {
+        cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp)); 
+    }
+    if (glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS) {
+        cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp)); 
+    }
+
 }
 
 void frameBufferSizeCallback(GLFWwindow* window_, int width_, int height_) {
