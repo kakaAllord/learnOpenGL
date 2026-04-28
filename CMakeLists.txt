@@ -18,6 +18,7 @@ add_executable(
 		src/main.cpp
 		src/Vendor/glad/src/glad.c
 		src/Shader.cpp
+		src/Camera.cpp
 		src/Vendor/stb_image/src/stb_image.cpp
 )
 
